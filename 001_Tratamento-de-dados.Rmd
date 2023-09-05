@@ -1,0 +1,223 @@
+---
+title: "Tratamento dos dados do conjunto tempo.csv"
+output: html_notebook
+---
+
+
+Atributos e seus domínos: Aparência: sol, nublado, chuva Temperatura: -130 ~ 130 F Umidade: 0 ~ 100 Jogar: sim/não
+
+Certificaremos se os dados estão dentro dos domínios acima, se não estiverem, iremos tratar e também tratar valores NAs
+
+
+```{r}
+setwd("D:/Aprendendo_R/Portfolio_github")
+```
+
+
+Importando o dataset, atribuindo a uma variável e exibindo os 5 primeiros registros
+```{r}
+dados = read.csv('tempo.csv')
+head(dados, 5)
+```
+
+Como as colunas do dataset vieram bagunçadas, vamos arrumar isso
+```{r}
+dados = read.csv('tempo.csv', sep = ';')
+head(dados, 5)
+```
+
+Resumo dos dados
+```{r}
+summary(dados)
+```
+
+Podemos observar algumas inconsistências acima:
+* Aparência - domínio menos
+* Temperatura - Max = 1220, o que elevou a média para 155,57
+* Umidade - Max = 200, referência é de 0 a 100
+* NAs = 1
+
+
+Vamos explorar os dados para depois tratar as inconsistências
+
+
+Dados Categóricos:
+
+1.APARÊNCIA
+
+```{r}
+# Quantos registros de cada domínio
+counts = table(dados$Aparencia)
+counts
+```
+```{r}
+# Gráfico de barras para visualizar a quantidade de cada domínio
+barplot(counts, main = 'Aparência', xlab = 'Aparência' )
+```
+
+2. VENTO
+```{r}
+counts = table(dados$Vento)
+counts
+```
+```{r}
+barplot(counts, main = 'Vento', xlab = 'Vento')
+
+```
+
+Dados Numéricos
+
+1.TEMPERATURA
+```{r}
+summary(dados$Temperatura)
+```
+
+```{r}
+# boxplot
+boxplot(dados$Temperatura)
+```
+
+O boxplot mostra outlier acima de 1200 e o boxplot está na linha de baixo, isso mostra o efeito nocivo que o outlier causa nos dados
+
+
+```{r}
+hist(dados$Temperatura)
+```
+
+
+2. UMIDADE
+```{r}
+summary(dados$Umidade)
+```
+
+```{r}
+boxplot(dados$Umidade)
+```
+
+```{r}
+hist(dados$Umidade)
+```
+
+
+VALORES FALTANTES
+```{r}
+dados[!complete.cases(dados), ]
+```
+
+```{r}
+summary(dados$Aparencia)
+#não temos NAs
+dados[is.na(dados$Aparencia),]
+#opção, preencher com mediana
+#subtituição com moda
+dados[dados$Aparencia == 'menos' ,]$Aparencia = 'sol' 
+#buscamos novamente aparencias
+summary(dados$Aparencia)
+#remover levels não utilizados
+dados$Aparencia =   factor(dados$Aparencia)
+#visualizar novamente
+summary(dados$Aparencia)
+```
+*TEMPERATURA - Tratar domínio*
+
+```{r}
+summary(dados$Temperatura)
+```
+
+Ver dados anormais
+```{r}
+dados[dados$Temperatura < -130 | dados$Temperatura > 130, ]$Temperatura
+```
+
+não temos NAs
+```{r}
+dados[is.na(dados$Temperatura), ]
+```
+
+Preencher o valor anormal (1220) com a mediana da temperatura
+```{r}
+median(dados$Temperatura)
+dados[dados$Temperatura < -135 | dados$Temperatura > 130]$Temperatura = median(dados$Temperatura)
+
+```
+
+
+Buscamos novamente temperaturas anormais
+```{r}
+dados[dados$Temperatura < -135 | dados$Temperatura > 130, ]$Temperatura
+```
+
+```{r}
+summary(dados$Temperatura)
+```
+
+
+
+*UMIDADE - Tratar domínio, NAs*
+```{r}
+summary(dados$Umidade)
+```
+
+
+Ver valor fora do domínio
+```{r}
+dados[dados$Umidade < 0 | dados$Umidade> 100, ]$Umidade
+```
+Verificar NAs
+```{r}
+dados[is.na(dados$Umidade),]
+```
+
+Atribuir mediana ao NA
+```{r}
+mediana = median(dados$Umidade, na.rm = T)
+mediana
+dados[is.na(dados$Umidade),]$Umidade = mediana
+```
+
+```{r}
+# Verificar se ainda há NA
+dados[is.na(dados$Umidade), ]
+```
+
+Substituir max = 200 pela mediana
+```{r}
+dados[dados$Umidade < 0 | dados$Umidade > 100,]$Umidade = mediana
+```
+
+
+```{r}
+summary(dados$Umidade)
+```
+
+
+*VENTO - Tratar NA*
+```{r}
+summary(dados$Vento)
+```
+
+Substituir o NA pelo valor mais frequente (moda) = 'FALSO'
+```{r}
+dados[is.na(dados$Vento)]$Vento = 'FALSO'
+```
+
+```{r}
+summary(dados$Vento)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
